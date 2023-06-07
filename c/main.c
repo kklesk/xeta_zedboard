@@ -64,17 +64,22 @@ int main(int argc, char **argv){
         exit -1;
     }
     /* VHDL Addresses/Ports
-     * Baseaddress + 0 : String one
-     * Baseaddress + 1 : String one
+     * Baseaddress + 0 : String one => load string to Register 0
+     * Baseaddress + 1 : String one=> load string to Register 1
+     * Baseaddress + 3 : String one crypted => read crypted string from Register 3
+     * Baseaddress + 4 : String one crypted => read crypted string from Register 4
      * Insert Aa in Port_1
      * Insert bB in Port_2
-     * */
 
-    /*set words into port_1 and port_2*/
+     */
     *(pBaseAddress + 0 ) = words[0];
     *(pBaseAddress + 1 ) = words[1];
 
-    printf("")
+    /* Read string from port_3
+    * Read string from port_4
+    */
+    printf("encrypted string one: %s is crypted %s\n",words[0],(char*)*(pBaseAddress + 3 ) );
+    printf("encrypted string two: %s is crypted %s\n",words[1],(char*)*(pBaseAddress + 4 ) );
 
     close(fd);
     munmap(pBaseAddress,getpagesize());
