@@ -36,12 +36,18 @@ use ieee.numeric_std.all;
 
 entity encryptor is
 -- read only one char (8-bit)
-    Port ( input_hex : in STD_LOGIC_VECTOR(8 downto 0);
-         --input_hex : in STD_LOGIC_VECTOR(8 downto 0);
-           input_hex_two : in STD_LOGIC_VECTOR(8 downto 0);
-           -- input_hex_two : in STD_LOGIC_VECTOR(8 downto 0);
-           --
-          -- key : in STD_LOGIC_VECTOR(31 downto 0);
+    Port ( 
+        -- num_cycles: 8-bit max 32 iterations
+           num_cycles : in STD_LOGIC_VECTOR(8 downto 0);
+           input_hex_one : in STD_LOGIC_VECTOR(31 downto 0);
+        -- input_hex : in STD_LOGIC_VECTOR(31 downto 0);
+           input_hex_two : in STD_LOGIC_VECTOR(31 downto 0);
+        -- input_hex_two : in STD_LOGIC_VECTOR(31 downto 0);
+           key_one : in STD_LOGIC_VECTOR(31 downto 0);
+           key_two : in STD_LOGIC_VECTOR(31 downto 0);
+           key_three : in STD_LOGIC_VECTOR(31 downto 0);
+           key_four : in STD_LOGIC_VECTOR(31 downto 0);
+
            output_hex_one : out STD_LOGIC;
            output_hex_two : out STD_LOGIC);
            
@@ -49,21 +55,21 @@ end encryptor;
 
 architecture Behavioral of encryptor is
 --signal first_string: unsigned(0 to 8);
-signal first_string: STD_LOGIC_VECTOR(0 to 8);
+signal input_string_one: STD_LOGIC_VECTOR(31 downto 0);
 --signal second_string: unsigned(0 to 8);
-signal second_string: STD_LOGIC_VECTOR(0 to 8);
---TODO declare delta like wikipedia example
+signal input_string_two: STD_LOGIC_VECTOR(31 downto 0);
+--TODO declare delta from wikipedia example
 signal delta: STD_LOGIC_VECTOR( 31 downto 0 ):= x"9E3779B9";
 --signal Data_Byte : std_logic_vector( 7 downto 0) := x"41";
 signal temp: unsigned (7 downto 0);
  
 begin
-    first_string <= (input_hex);
-    second_string <= (input_hex_two);
+    input_string_one <= (input_hex_one);
+    input_string_two <= (input_hex_two);
     --delta <= x9E3779B9;
  process is
     begin
-        for i in 1 to 2 loop
+        for i in 1 to num_cycles loop
             report "i=" & integer'image(i);
             -- 1.1 A=(((v1 << 4)
             -- 1.2 B=(v1 >> 5)
