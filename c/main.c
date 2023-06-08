@@ -45,13 +45,6 @@ int main(int argc, char **argv){
     //TODO read arguments and parse in hex
     if(argc <= 1 )
         exit(-1);
-    /*Create char array
-     * 0x4161 = Aa
-     * 0x6242 = bB
-     * */
-//    u_int32_t  words[] = {(u_int32_t) "AA"};
-    u_int32_t words[] = { 0x4161 , 0x6242};
-
 
     int fd = open("/dev/mem", O_RDWR | O_SYNC, S_IRWXU);
     if (fd == -1){
@@ -102,8 +95,12 @@ int main(int argc, char **argv){
 #ifdef SOFTWARE
 //    uint32_t key[] = { 0x1337, 0x3317, 0x3137, 0x1733};
     uint32_t key[] = {0x61610a,0x9E3798,0x9E3776,0x9E3773};
-
-    uint32_t words [] = { 0x4161 , 0x6141};
+    
+    /*Create char array
+     * 0x4161 = Aa
+     * 0x6242 = bB
+     */
+    u_int32_t words[] = { 0x4161 , 0x6242};
     uint32_t* v_new_encipher = encipher(2, words,  key);
     uint32_t* v_new_decipher = decipher(2, v_new_encipher,  key);
 
