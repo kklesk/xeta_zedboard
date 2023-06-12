@@ -24,6 +24,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.std_logic_unsigned.all;
 -- lib for bitshifting
 use ieee.numeric_std.all;
+--use ieee.std_logic_1164.all;
+use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -50,6 +52,7 @@ entity encryptor is
 
            output_hex_one : out STD_LOGIC;
            output_hex_two : out STD_LOGIC);
+
            
 end encryptor;
 
@@ -62,15 +65,37 @@ signal input_string_two: STD_LOGIC_VECTOR(31 downto 0);
 signal delta: STD_LOGIC_VECTOR( 31 downto 0 ):= x"9E3779B9";
 --signal Data_Byte : std_logic_vector( 7 downto 0) := x"41";
 signal temp: unsigned (7 downto 0);
+           
+signal A_encipher_shifting: std_logic_vector(31 downto 0);
+signal B_decipher_shifting: std_logic_vector(31 downto 0);
+signal A_sum: std_logic_vector(31 downto 0);
+signal B_sum: std_logic_vector(31 downto 0);
+signal result_one: std_logic_vector(7 downto 0);
  
 begin
+-- TODO is this nessecary? 
+-- Solution ==> a_one <= std_logic_vector (unsigned (input_hex_one) sll 4) ; 
+-- TODO clocked_process https://vhdlwhiz.com/clocked-process/
     input_string_one <= (input_hex_one);
     input_string_two <= (input_hex_two);
     --delta <= x9E3779B9;
  process is
     begin
-        for i in 1 to num_cycles loop
+        for i in 1 to 16 loop
             report "i=" & integer'image(i);
+            -- a_one <= input_hex_one sll 4 ; 
+            -- cycle one
+            A_encipher_shifting <= std_logic_vector (unsigned (input_hex_one) sll 4) ; 
+            B_decipher_shifting <= std_logic_vector (unsigned (input_hex_one) srl 5) ; 
+            A_sum <= std_logic_vector (unsigned (input_hex_one) srl 5); 
+            -- TODO 
+            --B_sum <= B_sum & '3';
+            B_sum <= B_sum + delta;
+            -- cycle two
+            -- temp <= std_logic_vector (unsigned (A_encipher_shifting)) xor std_logic_vector (unsigned (B_decipher_shifting) );
+            --temp <= A_encipher_shifting xor B_decipher_shifting;
+            
+            -- a_ <= input_string_one sll 4 ;
             -- 1.1 A=(((v1 << 4)
             -- 1.2 B=(v1 >> 5)
             -- 1.3 C= (A XOR B) + 1
@@ -88,3 +113,4 @@ begin
 end Behavioral;
 
 -- procedure encrypt(string_one: std_logic_vector, string_two: std_logic_vector)
+
