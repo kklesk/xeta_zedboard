@@ -82,7 +82,7 @@ architecture Behavioral of xtea is
     begin
         if reset = '1' then 
             s_states <= idle;
-        if rising_edge (clk) then
+        elsif rising_edge (clk) then
         case s_states is
             when idle => 
                 if start = '0' then 
