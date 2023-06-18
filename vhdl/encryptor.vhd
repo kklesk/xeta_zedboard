@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 06/07/2023 12:20:54 PM
+-- Create Date: 06/12/2023 11:58:52 PM
 -- Design Name: 
--- Module Name: encryptor - Behavioral
+-- Module Name: xtea - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -27,6 +27,7 @@ use ieee.numeric_std.all;
 --use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_1164.ALL;
 
+
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -36,81 +37,80 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity encryptor is
--- read only one char (8-bit)
+entity xtea is
     Port ( 
-        -- num_cycles: 8-bit max 32 iterations
-           num_cycles : in STD_LOGIC_VECTOR(8 downto 0);
-           input_hex_one : in STD_LOGIC_VECTOR(31 downto 0);
-        -- input_hex : in STD_LOGIC_VECTOR(31 downto 0);
-           input_hex_two : in STD_LOGIC_VECTOR(31 downto 0);
-        -- input_hex_two : in STD_LOGIC_VECTOR(31 downto 0);
-           key_one : in STD_LOGIC_VECTOR(31 downto 0);
-           key_two : in STD_LOGIC_VECTOR(31 downto 0);
-           key_three : in STD_LOGIC_VECTOR(31 downto 0);
-           key_four : in STD_LOGIC_VECTOR(31 downto 0);
+    clk, reset,start: in STD_LOGIC;
+        
+    input_hexOne : in STD_LOGIC_VECTOR(31 downto 0);
+    input_hexTwo : in STD_LOGIC_VECTOR(31 downto 0);
+    input_numOfCycles : in STD_LOGIC_VECTOR(7 downto 0);
+    input_keyOne: in STD_LOGIC_VECTOR(31 downto 0);
+    input_keyTwo: in STD_LOGIC_VECTOR(31 downto 0);
+    input_keyThree: in STD_LOGIC_VECTOR(31 downto 0);
+    output_hexOne: out std_logic_vector(31 downto 0);
+    output_hextwo: out std_logic_vector(31 downto 0)
+    );
+end xtea;
 
-           output_hex_one : out STD_LOGIC;
-           output_hex_two : out STD_LOGIC);
-
-           
-end encryptor;
-
-architecture Behavioral of encryptor is
---signal first_string: unsigned(0 to 8);
-signal input_string_one: STD_LOGIC_VECTOR(31 downto 0);
---signal second_string: unsigned(0 to 8);
-signal input_string_two: STD_LOGIC_VECTOR(31 downto 0);
---TODO declare delta from wikipedia example
-signal delta: STD_LOGIC_VECTOR( 31 downto 0 ):= x"9E3779B9";
---signal Data_Byte : std_logic_vector( 7 downto 0) := x"41";
-signal temp: unsigned (7 downto 0);
-           
-signal A_encipher_shifting: std_logic_vector(31 downto 0);
-signal B_decipher_shifting: std_logic_vector(31 downto 0);
-signal A_sum: std_logic_vector(31 downto 0);
-signal B_sum: std_logic_vector(31 downto 0);
-signal result_one: std_logic_vector(7 downto 0);
- 
-begin
--- TODO is this nessecary? 
--- Solution ==> a_one <= std_logic_vector (unsigned (input_hex_one) sll 4) ; 
--- TODO clocked_process https://vhdlwhiz.com/clocked-process/
-    input_string_one <= (input_hex_one);
-    input_string_two <= (input_hex_two);
-    --delta <= x9E3779B9;
- process is
-    begin
-        for i in 1 to 16 loop
-            report "i=" & integer'image(i);
-            -- a_one <= input_hex_one sll 4 ; 
-            -- cycle one
-            A_encipher_shifting <= std_logic_vector (unsigned (input_hex_one) sll 4) ; 
-            B_decipher_shifting <= std_logic_vector (unsigned (input_hex_one) srl 5) ; 
-            A_sum <= std_logic_vector (unsigned (input_hex_one) srl 5); 
-            -- TODO 
-            --B_sum <= B_sum & '3';
-            B_sum <= B_sum + delta;
-            -- cycle two
-            -- temp <= std_logic_vector (unsigned (A_encipher_shifting)) xor std_logic_vector (unsigned (B_decipher_shifting) );
-            --temp <= A_encipher_shifting xor B_decipher_shifting;
-            
-            -- a_ <= input_string_one sll 4 ;
-            -- 1.1 A=(((v1 << 4)
-            -- 1.2 B=(v1 >> 5)
-            -- 1.3 C= (A XOR B) + 1
-            -- 2.1.1 index_A = sum >> 11
-            -- 2.1.2 
-            -- 2.1.3 sum = (sum
-            --first_string <= second_string sll 4;
-            --first_string <= first_string xor 
-        end loop;
-        wait;
-         
-    end process;
+architecture Behavioral of xtea is
+    --
+    --signal first_string: unsigned(0 to 8);
+    signal input_string_one: STD_LOGIC_VECTOR(31 downto 0);
+    --signal second_string: unsigned(0 to 8);
+    signal input_string_two: STD_LOGIC_VECTOR(31 downto 0);
+    --TODO declare delta from wikipedia example
+    signal delta: STD_LOGIC_VECTOR( 31 downto 0 ):= x"9E3779B9";
+    --signal Data_Byte : std_logic_vector( 7 downto 0) := x"41";
+    --signal temp: unsigned (7 downto 0);
+               
+    signal A_encipher_shifting: std_logic_vector(31 downto 0);
+    signal B_decipher_shifting: std_logic_vector(31 downto 0);
+    signal A_sum: std_logic_vector(31 downto 0);
+    signal B_sum: std_logic_vector(31 downto 0);
+    signal result_one: std_logic_vector(7 downto 0);
     
+   
+    type t_states is (idle,clockOne,clockTwo,clockThree);
+    signal s_states : t_states;
 
+    
+    begin
+    
+        input_string_one <= (input_hexOne);
+        input_string_two <= (input_hexOne);
+    process(clk,reset)
+    begin
+        if reset = '1' then 
+            s_states <= idle;
+       --if rising_edge (clk) then
+        --elsif idle'event and idle = '1' then
+        --elsif rising_edge (clk) then
+        case s_states is
+            when idle => 
+                if start = '0' then 
+                    s_states <= idle;
+                else
+                    s_states <= clockOne;
+            end if;  
+            -- first cycle
+            when clockOne => 
+                A_encipher_shifting <= std_logic_vector (unsigned (input_string_one) sll 4) ; 
+                B_decipher_shifting <= std_logic_vector (unsigned (input_string_two) srl 5) ; 
+                A_sum <= std_logic_vector (unsigned (input_string_one) srl 5); 
+                -- TODO 
+                --B_sum <= B_sum & '3';
+                B_sum <= B_sum + delta;
+                s_states <= clockTwo;
+            
+            when clockTwo => 
+                s_states <= clockThree;
+            
+            when clockThree =>
+                s_states <= idle;
+            
+            end case;       
+        --elsif idle'event and idle='1' then
+        end if;
+     --   if rising_edge (clk) then
+    end process;
 end Behavioral;
-
--- procedure encrypt(string_one: std_logic_vector, string_two: std_logic_vector)
-
