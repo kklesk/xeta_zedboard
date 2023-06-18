@@ -28,6 +28,7 @@ use ieee.numeric_std.all;
 use IEEE.STD_LOGIC_1164.ALL;
 
 
+
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -61,7 +62,8 @@ architecture Behavioral of xtea is
     --TODO declare delta from wikipedia example
     signal delta: STD_LOGIC_VECTOR( 31 downto 0 ):= x"9E3779B9";
     --signal Data_Byte : std_logic_vector( 7 downto 0) := x"41";
-    --signal temp: unsigned (7 downto 0);
+    signal A_temp: STD_LOGIC_VECTOR (31 downto 0);
+    signal B_temp: STD_LOGIC_VECTOR (31 downto 0);
                
     signal A_encipher_shifting: std_logic_vector(31 downto 0);
     signal B_decipher_shifting: std_logic_vector(31 downto 0);
@@ -75,7 +77,6 @@ architecture Behavioral of xtea is
 
     
     begin
-    
         input_string_one <= (input_hexOne);
         input_string_two <= (input_hexOne);
     process(clk,reset)
@@ -83,6 +84,7 @@ architecture Behavioral of xtea is
         if reset = '1' then 
             s_states <= idle;
         elsif rising_edge (clk) then
+            s_states <= idle;
         case s_states is
             when idle => 
                 if start = '0' then 
@@ -94,16 +96,35 @@ architecture Behavioral of xtea is
             when clockOne => 
                 A_encipher_shifting <= std_logic_vector (unsigned (input_string_one) sll 4) ; 
                 B_decipher_shifting <= std_logic_vector (unsigned (input_string_two) srl 5) ; 
-                A_sum <= std_logic_vector (unsigned (input_string_one) srl 5); 
+                A_sum <= std_logic_vector (signed (A_encipher_shifting)) xor std_logic_vector (signed (B_decipher_shifting));
+               --A_sum <= std_logic_vector (unsigned (input_string_one) srl 5);
+                
                 -- TODO 
-                --B_sum <= B_sum & '3';
-                B_sum <= B_sum + delta;
+                B_temp <= B_sum & "0011";
                 s_states <= clockTwo;
             
             when clockTwo => 
+                A_sum <= std_logic_vector (signed (A_sum)) xor std_logic_vector (signed (B_sum));
+                B_sum <= B_sum + delta;
+
+                A_temp <= input_hexOne + B_sum;
+
+                A_temp <=  std_logic_vector (unsigned (A_temp) sll 4);
+                B_temp <=  std_logic_vector (unsigned (B_temp) srl 5);
+                A_sum <= std_logic_vector (signed (A_temp)) xor std_logic_vector (signed (B_temp));
+
+                
+                B_sum <=  std_logic_vector (unsigned (B_sum) srl 11);
+                B_temp <= B_sum & "0011";
+                
+
+                
                 s_states <= clockThree;
             
             when clockThree =>
+                --A_sum <= A_sum + 
+                B_sum <= B_temp + B_sum;
+                
                 s_states <= idle;
             
             end case;       
